@@ -17,7 +17,7 @@
 (*************************************************************************************)
 
 module type S = sig
-  module CK : Wcache_key.S
+  module CK : Cache_key.S
 
   type ckey = CK.t
   type key = string
@@ -71,4 +71,4 @@ module type S = sig
   val keyedmap_keys : 'a KeyedMap.t -> key list
 end
 
-module Make (K : Wkey.S) : S with type key = K.t
+module Make (K : Key.S) : S with type key = K.t

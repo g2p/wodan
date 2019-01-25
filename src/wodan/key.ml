@@ -38,7 +38,7 @@ module type S = sig
   val next_key : t -> t
 end
 
-module Make (P : Wblock.SUPERBLOCK_PARAMS) : S = struct
+module Make (P : Node.SUPERBLOCK_PARAMS) : S = struct
   type t = string
 
   exception BadKey of string

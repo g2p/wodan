@@ -78,8 +78,8 @@ module type S = sig
   type disk
   type root
 
-  module K : Wkey.S
-  module V : Wvalue.S
+  module K : Key.S
+  module V : Value.S
   module P : SUPERBLOCK_PARAMS
 
   val key_of_cstruct : Cstruct.t -> K.t

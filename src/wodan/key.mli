@@ -36,4 +36,4 @@ module type S = sig
   val next_key : t -> t
 end
 
-module Make (P : Wblock.SUPERBLOCK_PARAMS) : S
+module Make (P : Node.SUPERBLOCK_PARAMS) : S

@@ -19,8 +19,8 @@
 open Sexplib.Std
 
 module type S = sig
-  module CK : Wcache_key.S
-  module CV : Wcache_value.S
+  module CK : Cache_key.S
+  module CV : Cache_value.S
 
   module LRU : Lru.M.S with type k = CK.t and type v = CV.t
   module BlockIntervals : Diet.INTERVAL_SET with type elt = CK.t
@@ -85,7 +85,7 @@ module type S = sig
   val _mark_dirty : node_cache -> CK.t -> CV.flush_info
 end
 
-module Make (CK : Wcache_key.S) (CV : Wcache_value.S) : S = struct
+module Make (CK : Cache_key.S) (CV : Cache_value.S) : S = struct
   module CK = CK
   module CV = CV
 

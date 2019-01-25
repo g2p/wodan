@@ -19,7 +19,7 @@
 [@@@warning "-32"]
 
 module type S = sig
-  module CK : Wcache_key.S
+  module CK : Cache_key.S
 
   type ckey = CK.t
   type key = string
@@ -73,8 +73,8 @@ module type S = sig
   val keyedmap_keys : 'a KeyedMap.t -> key list
 end
 
-module Make (K : Wkey.S) : S with type key = K.t = struct
-  module CK = Wcache_key.Make
+module Make (K : Key.S) : S with type key = K.t = struct
+  module CK = Cache_key.Make
 
   type ckey = CK.t
   type key = K.t
@@ -127,8 +127,8 @@ module Make (K : Wkey.S) : S with type key = K.t = struct
 
   let header_size n =
     match n with
-    | `Root -> Wblock.sizeof_rootnode_hdr
-    | `Child -> Wblock.sizeof_childnode_hdr
+    | `Root -> Node.sizeof_rootnode_hdr
+    | `Child -> Node.sizeof_childnode_hdr
 
   let keyedmap_find k map =
     match KeyedMap.find_opt k map with

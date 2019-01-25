@@ -21,7 +21,7 @@
 
 open Lwt.Infix
 open Sexplib.Std
-open Wblock
+open Node
 
 let max_dirty = 128
 
@@ -33,12 +33,12 @@ exception BadNodeType of int
 exception BadNodeFSID of string
 
 (* Signature importation *)
-exception BadMagic = BadMagic
-exception BadVersion = BadVersion
-exception BadFlags = BadFlags
-exception BadCRC = BadCRC
-exception BadParams = BadParams
-exception ReadError = ReadError
+exception BadMagic = Node.BadMagic
+exception BadVersion = Node.BadVersion
+exception BadFlags = Node.BadFlags
+exception BadCRC = Node.BadCRC
+exception BadParams = Node.BadParams
+exception ReadError = Node.ReadError
 
 module type SUPERBLOCK_PARAMS = SUPERBLOCK_PARAMS
 
@@ -106,7 +106,7 @@ type mount_options = {
 }
 
 module type PARAMS = sig
-  include Wblock.SUPERBLOCK_PARAMS
+  include Node.SUPERBLOCK_PARAMS
 end
 
 let standard_mount_options = {
@@ -123,9 +123,9 @@ module type S = sig
   type disk
   type root
 
-  module K : Wkey.S
-  module V : Wvalue.S
-  module P : Wblock.SUPERBLOCK_PARAMS
+  module K : Key.S
+  module V : Value.S
+  module P : Node.SUPERBLOCK_PARAMS
 
   val key_of_cstruct : Cstruct.t -> K.t
   val key_of_string : string -> K.t
@@ -153,12 +153,12 @@ module type S = sig
   val prepare_io : deviceOpenMode -> disk -> mount_options -> (root * int64) Lwt.t
 end
 
-module Make (B : EXTBLOCK) (P : Wblock.SUPERBLOCK_PARAMS) : S with type disk = B.t = struct
+module Make (B : EXTBLOCK) (P : Node.SUPERBLOCK_PARAMS) : S with type disk = B.t = struct
   type disk = B.t
 
-  module K = Wkey.Make(P)
-  module V = Wvalue.Make
-  module C = Wcache.Make(Wcache_key.Make)(Wcache_value.Make(K))
+  module K = Key.Make(P)
+  module V = Value.Make
+  module C = Cache.Make(Cache_key.Make)(Cache_value.Make(K))
   module P = P
 
   open C
