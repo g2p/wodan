@@ -21,6 +21,11 @@ let misc = [
 ]
 
 let () =
+  Alcotest.run "Unit Testing" [
+    "Test of Cache_key", Test_cache_key.test;
+  ]
+
+let () =
   Irmin_test.Store.run "irmin" ~misc [
     `Quick , Test_wodan.suite;
   ]

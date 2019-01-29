@@ -9,6 +9,8 @@ module type S = sig
 
   val equal : t -> t -> bool
 
+  val pp : t Fmt.t
+
   val pred : t -> t
 
   val succ : t -> t

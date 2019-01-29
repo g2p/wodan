@@ -4,10 +4,15 @@
   (modules   test_wodan)
   (libraries checkseum.c digestif.c irmin-test irmin-mem io-page-unix nocrypto.lwt mirage-block-ramdisk wodan wodan-irmin))
 
+(library
+  (name      test_cache_key)
+  (modules   test_cache_key)
+  (libraries wodan alcotest))
+
 (executable
   (name      test)
   (modules   test)
-  (libraries test_wodan))
+  (libraries test_wodan test_cache_key))
 
 (alias
   (name runtest)

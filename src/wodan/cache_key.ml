@@ -9,6 +9,8 @@ module type S = sig
 
   val equal : t -> t -> bool
 
+  val pp : t Fmt.t
+
   val pred : t -> t
 
   val succ : t -> t
@@ -34,6 +36,8 @@ module Make : S = struct
   let hash = Hashtbl.hash
   
   let equal = Int64.equal
+
+  let pp ppf k = Fmt.pf ppf "@[%Ld]" k
 
   let pred = Int64.pred
 
