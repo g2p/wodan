@@ -15,6 +15,8 @@
 (*                                                                                   *)
 (*************************************************************************************)
 
+[@@@warning "-37"]
+
 open Lwt.Infix
 open Sexplib.Std
 
@@ -205,6 +207,10 @@ type flush_info = {
   mutable flush_children: LRUKey.t KeyedMap.t;
 }
 
+type children =
+  | Logical_child of int64
+  | Ckey_child of LRUKey.t
+
 type lru_entry = {
   cached_node: node;
   mutable parent_key: LRUKey.t option;
@@ -213,8 +219,9 @@ type lru_entry = {
      We use an option here to make checking for flushability faster.
      A flushable node is either new or dirty, but not both. *)
   mutable flush_info: flush_info option;
+  mutable children: children KeyedMap.t;
 (* Use offsets so that data isn't duplicated *)
-  mutable children: (LRUKey.t KeyedMap.t) Lazy.t;
+(*  mutable children: (LRUKey.t KeyedMap.t) Lazy.t;*)
 (* Don't reference nodes directly, always go through the
  * LRU to bump recently accessed nodes *)
   mutable children_alloc_ids: LRUKey.t KeyedMap.t;
@@ -250,7 +257,7 @@ let lookup_parent_link lru entry =
     match lru_peek lru parent_key with
     |None -> failwith "Missing parent"
     |Some parent_entry ->
-    let children = Lazy.force parent_entry.children in
+    let children = parent_entry.children in
     let offset = keyedmap_find entry.highest_key children in
     Some (parent_key, parent_entry, offset)
 
@@ -708,7 +715,7 @@ module Make(B: EXTBLOCK)(P: SUPERBLOCK_PARAMS) : (S with type disk = B.t) = stru
     in
     let alloc_id = next_alloc_id cache in
     let rdepth = get_rootnode_hdr_depth cstr in
-    let rec entry = {parent_key=None; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children=lazy (_compute_children entry); children_alloc_ids=KeyedMap.create (); highest_key=top_key; prev_logical=Some logical; childlinks={childlinks_offset=_find_childlinks_offset cstr logdata.value_end;}} in
+    let rec entry = {parent_key=None; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children=_compute_children entry; children_alloc_ids=KeyedMap.create (); highest_key=top_key; prev_logical=Some logical; childlinks={childlinks_offset=_find_childlinks_offset cstr logdata.value_end;}} in
       lru_xset cache.lru alloc_id entry;
       Lwt.return (alloc_id, entry)
 
@@ -723,7 +730,7 @@ module Make(B: EXTBLOCK)(P: SUPERBLOCK_PARAMS) : (S with type disk = B.t) = stru
       |ty -> raise @@ BadNodeType ty
     in
       let alloc_id = next_alloc_id cache in
-    let rec entry = {parent_key=Some parent_key; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children=lazy (_compute_children entry); children_alloc_ids=KeyedMap.create (); highest_key; prev_logical=Some logical; childlinks={childlinks_offset=_find_childlinks_offset cstr logdata.value_end;}} in
+    let rec entry = {parent_key=Some parent_key; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children=_compute_children entry); children_alloc_ids=KeyedMap.create (); highest_key; prev_logical=Some logical; childlinks={childlinks_offset=_find_childlinks_offset cstr logdata.value_end;}} in
       lru_xset cache.lru alloc_id entry;
       Lwt.return entry
 
@@ -929,7 +936,7 @@ module Make(B: EXTBLOCK)(P: SUPERBLOCK_PARAMS) : (S with type disk = B.t) = stru
         logdata_contents=KeyedMap.create ();
         value_end; old_value_end=value_end;
       } in
-    let entry = {parent_key; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children=Lazy.from_val @@ KeyedMap.create (); children_alloc_ids=KeyedMap.create (); highest_key; prev_logical=None; childlinks={childlinks_offset=block_end;}} in
+    let entry = {parent_key; cached_node; raw_node=cstr; rdepth; io_data; logdata; flush_info=None; children_bis=KeyedMap.create (); children=Lazy.from_val @@ KeyedMap.create (); children_alloc_ids=KeyedMap.create (); highest_key; prev_logical=None; childlinks={childlinks_offset=block_end;}} in
     lru_xset cache.lru alloc_id entry;
     alloc_id, entry
 
